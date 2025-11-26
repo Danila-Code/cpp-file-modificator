@@ -1,0 +1,53 @@
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include "modificator.h"
+
+#include <QMainWindow>
+#include <QProgressBar>
+#include <QThread>
+
+QT_BEGIN_NAMESPACE
+namespace Ui {
+class MainWindow;
+}
+QT_END_NAMESPACE
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+
+private slots:
+    void on_pb_modificate_clicked();
+
+    void on_pb_browse_input_clicked();
+
+    void on_pb_browse_output_clicked();
+
+    void on_cbx_timer_toggled(bool checked);
+
+    void update_progress(int value, int max);
+
+    void file_modified(const QString& file_name, bool success);
+
+    void finish_modify(int succed_files, int total);
+
+private:
+    Ui::MainWindow *ui;
+
+    QThread modificator_thread_;
+    Modificator* file_modificator_;
+
+    bool timer_on_ = false;
+    bool working_with_timer_ = false;
+    uint32_t timer_period_ = 5;
+
+    void SetModificatorParams();
+    void SetInitParams();
+    bool CheckValidity();
+};
+#endif // MAINWINDOW_H
