@@ -22,6 +22,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(file_modificator_, &Modificator::UpdateProgress, this, &MainWindow::update_progress);
     connect(file_modificator_, &Modificator::ModifyFile, this, &MainWindow::file_modified);
     connect(file_modificator_, &Modificator::FinishModify, this, &MainWindow::finish_modify);
+    connect(&modificator_thread_, &QThread::finished, file_modificator_, &QObject::deleteLater);
+
+    modificator_thread_.start();
 
     SetInitParams();
 }
@@ -30,7 +33,6 @@ MainWindow::~MainWindow()
 {
     modificator_thread_.quit();
     modificator_thread_.wait();
-    delete file_modificator_;
     delete ui;
 }
 
@@ -41,7 +43,8 @@ void MainWindow::SetInitParams() {
     ui->le_input_mask->setText("*.txt");
     ui->le_modifier->setText("D2A1B3A4D2A1B3A4");
     ui->sbx_timer_period->setValue(timer_period_);
-    ui->sbx_timer_period->setEnabled(false);
+    ui->sbx_timer_period->setEnabled(timer_on_);
+    ui->lbl_timer_period->setEnabled(timer_on_);
     ui->cbx_timer->setChecked(timer_on_);
     ui->pb_progress->setAlignment(Qt::AlignCenter);
 }
@@ -63,6 +66,7 @@ void MainWindow::finish_modify(int succed_files, int total) {
     ui->pb_progress->setFormat(status);
 
     ui->pb_modificate->setEnabled(true);
+
     if (timer_on_) {
         QTimer::singleShot(timer_period_ * 1000, file_modificator_, [this](){
             file_modificator_->RunModificator();
@@ -77,6 +81,7 @@ void MainWindow::on_pb_modificate_clicked() {
         timer_on_ = false;
         ui->cbx_timer->setChecked(false);
         ui->sbx_timer_period->setEnabled(false);
+        ui->lbl_timer_period->setEnabled(false);
         ui->pb_modificate->setText("Модифицировать файлы");
         ui->pb_modificate->setEnabled(false);
         return;
@@ -94,30 +99,23 @@ void MainWindow::on_pb_modificate_clicked() {
         ui->pb_modificate->setEnabled(false);
     }
 
-    modificator_thread_.start();
     QTimer::singleShot(0, file_modificator_, [this](){
         file_modificator_->RunModificator();
     });
 }
 
 void MainWindow::on_pb_browse_input_clicked() {
-    QString current_path = ui->le_input_dir->text().isEmpty()
-                               ? QDir::currentPath()
-                               : ui->le_input_dir->text();
     ui->le_input_dir->setText(QFileDialog::getExistingDirectory(this,
                                            QString("Папка исходных файлов"),
-                                           current_path,
+                                           GetCurrentPath(ui->le_input_dir),
                                            QFileDialog::ShowDirsOnly
                                            | QFileDialog::DontResolveSymlinks));
 }
 
 void MainWindow::on_pb_browse_output_clicked() {
-    QString current_path = ui->le_output_path->text().isEmpty()
-                               ? QDir::currentPath()
-                               : ui->le_output_path->text();
     ui->le_output_path->setText(QFileDialog::getExistingDirectory(this,
                                            QString("Папка выходных файлов"),
-                                           current_path,
+                                           GetCurrentPath(ui->le_output_path),
                                            QFileDialog::ShowDirsOnly
                                            | QFileDialog::DontResolveSymlinks));
 }
@@ -152,4 +150,9 @@ void MainWindow::SetModificatorParams() {
 
 void MainWindow::on_cbx_timer_toggled(bool checked) {
     ui->sbx_timer_period->setEnabled(checked);
+    ui->lbl_timer_period->setEnabled(checked);
+}
+// если текст у lineedit пустой возвращает текущую папку программы
+QString MainWindow::GetCurrentPath(QLineEdit* const le) const {
+    return le->text().isEmpty() ? QDir::currentPath() : le->text();
 }

@@ -3,6 +3,7 @@
 
 #include "modificator.h"
 
+#include <QLineEdit>
 #include <QMainWindow>
 #include <QProgressBar>
 #include <QThread>
@@ -49,5 +50,6 @@ private:
     void SetModificatorParams();
     void SetInitParams();
     bool CheckValidity();
+    QString GetCurrentPath(QLineEdit* const le) const;
 };
 #endif // MAINWINDOW_H
