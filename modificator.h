@@ -9,7 +9,6 @@ class Modificator : public QObject {
     Q_OBJECT
 public:
     explicit Modificator(QObject* parent = nullptr);
-
     bool RunModificator();
 
 // setters
@@ -23,11 +22,14 @@ public:
     void SetOverwriteOutput(bool overwrite_output);
 
 signals:
-    void UpdateProgress(int value, int max);
+    void UpdateProgress(int value);
     void ModifyFile(const QString& name, bool success);
     void FinishModify(int complete, int max);
+    void ErrorMessage(const QString& msg);
 
 private:
+    const int buf_size = 1024 * 1024; // 1 megabyte
+
     QString input_mask_;
     QString input_directory_;
     QString output_path_;

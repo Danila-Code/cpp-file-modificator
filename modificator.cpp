@@ -10,6 +10,12 @@ void ApplyXORModifier(QByteArray& buffer, const QByteArray& modifier) {
         buffer[i] = buffer[i] ^ modifier[i % modifier.size()];
     }
 }
+// возвращает шаг обновления, который не должен быть меньше, чем один процент от size
+int GetUpdateStep(qsizetype size) {
+    const int max_step_count = 100;
+    int step = size / max_step_count;
+    return size % max_step_count == 0 ? step : ++step;
+}
 }  // namespace
 
 Modificator::Modificator(QObject* parent) : QObject(parent) {
@@ -40,7 +46,7 @@ void Modificator::SetOverwriteOutput(bool overwrite_output) {
     overwrite_output_ = overwrite_output;
 }
 // генерирует новое имя выходного файла (если такое имя уже есть)
-// методом добавления в конец имени файласкобочек с индексом, например - (2)
+// методом добавления в конец имени файла скобочек с индексом, например - file(2).txt
 QString Modificator::GetOutputName(const QFileInfo& input_file) {
     QString output_file = output_path_ + "/" + input_file.fileName();
     if (!overwrite_output_) {
@@ -68,11 +74,14 @@ bool Modificator::RunModificator() {
     input_dir.setNameFilters(QStringList(input_mask_));
 
     QFileInfoList file_list = input_dir.entryInfoList();
+    const qsizetype size = file_list.size();
 
-    if (!file_list.size()) {
+    if (!size) {
         emit FinishModify(0, 0);
         return false;
     }
+
+    const int update_step = GetUpdateStep(size);
 
     int complete_files = 0;
     int succed_files = 0;
@@ -88,25 +97,28 @@ bool Modificator::RunModificator() {
         emit ModifyFile(file.fileName(), success);
 
         ++complete_files;
-        emit UpdateProgress(complete_files, file_list.size());
+        if (complete_files % update_step == 0) {
+            emit UpdateProgress(complete_files * 100 / size);
+        }
     }
-    emit FinishModify(succed_files, file_list.size());
+    emit FinishModify(succed_files, size);
     return true;
 }
 // Читает файл ,применяет XOR операцию, записывает в файл
 bool Modificator::XORModificate(const QString& input_name, const QString& output_name) {
     QFile in(input_name);
     if (!in.open(QIODeviceBase::ReadOnly)) {
+        emit ErrorMessage(QString("Не открывается входной файл: %1").arg(in.fileName()));
         return false;
     }
 
     QFile out(output_name);
     if (!out.open(QIODeviceBase::WriteOnly)) {
         in.close();
+        emit ErrorMessage(QString("Не открывается выходной файл: %1").arg(out.fileName()));
         return false;
     }
 
-    const int buf_size = modifier_.size() * 1024; // 8 kilobyte
     QByteArray buffer;
 
     while (!in.atEnd()) {
@@ -120,8 +132,8 @@ bool Modificator::XORModificate(const QString& input_name, const QString& output
         if (out.write(buffer) != buffer.size()) {
             in.close();
             out.close();
+            emit ErrorMessage(QString("Ошибка записа в файл: %1").arg(out.fileName()));
             return false;
-            break;
         }
     }
     in.close();
