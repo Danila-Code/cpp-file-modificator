@@ -20,7 +20,7 @@
 * список с результатами работы, который о отображает имена обработанных файлов и их статус
 * сообщения об ошибках открытия и чтения файлов
 
-![](https://github.com/Danila-Code/cpp-file-modificator/blob/main/routes_map.png)
+![](https://github.com/Danila-Code/cpp-file-modificator/blob/main/prog.png)
 
 ## Особенности модификатора:
 * модификация файлов производится в отдельном потоке, что не даёт интерфейсу "подвисать"
