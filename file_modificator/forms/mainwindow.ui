@@ -301,7 +301,7 @@
          <bool>false</bool>
         </property>
         <property name="textDirection">
-         <enum>QProgressBar::Direction::TopToBottom</enum>
+         <enum>QProgressBar::Direction::BottomToTop</enum>
         </property>
         <property name="format">
          <string/>
@@ -349,6 +349,20 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <tabstops>
+  <tabstop>le_input_dir</tabstop>
+  <tabstop>pb_browse_input</tabstop>
+  <tabstop>le_output_path</tabstop>
+  <tabstop>pb_browse_output</tabstop>
+  <tabstop>le_input_mask</tabstop>
+  <tabstop>le_modifier</tabstop>
+  <tabstop>cbx_delete</tabstop>
+  <tabstop>cbx_overwrite</tabstop>
+  <tabstop>cbx_timer</tabstop>
+  <tabstop>sbx_timer_period</tabstop>
+  <tabstop>pb_modificate</tabstop>
+  <tabstop>lst_status</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

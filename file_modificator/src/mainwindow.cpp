@@ -54,7 +54,7 @@ void MainWindow::SetInitParams() {
     ui->sbx_timer_period->setEnabled(timer_on_);
     ui->lbl_timer_period->setEnabled(timer_on_);
     ui->cbx_timer->setChecked(timer_on_);
-    ui->pb_progress->setAlignment(Qt::AlignCenter);
+    ui->pb_progress->setStyleSheet("text-align: center;");
 }
 
 // обновление progressbar
